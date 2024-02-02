@@ -11,9 +11,9 @@ public with sharing class ContactTriggerDispatcher {
                 ContactTriggerHandler.handleBeforeUpdate(Trigger.new);
             }
             WHEN AFTER_UPDATE {
-                
+                ContactTriggerHandler.handleAfterUpdate((Map<Id,Contact>) Trigger.newMap, (Map<Id,Contact>) Trigger.oldMap);
             }
-            WHEN BEFORE_DELETE {
+            WHEN BEFORE_DELETE {  
                 
             }
             WHEN AFTER_DELETE {

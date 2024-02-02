@@ -204,4 +204,63 @@ public with sharing class ContactTriggerHelper {
             }
         }
     }
+    
+    //! Count number of contacts on the Account when new contact inserted/Updated
+    public static void updateAccountContacts(Set<Id> setAccId) {
+        
+        //* Query the contacts to update
+        Set<Id> setAccIds = new Set<Id>(setAccId); //* collect the Ids of contacts
+        List<Account> listAccToUpdate = new List<Account>();//* Collect accounts to update
+        if (!setAccIds.isEmpty()) {
+            
+            List<AggregateResult> listAggregate = [SELECT COUNT(Id) noContact, AccountID FROM Contact WHERE AccountId IN: setAccIds WITH USER_MODE GROUP BY AccountID];
+          
+            if (!listAggregate.isEmpty()) {
+                for (AggregateResult aggResult : listAggregate) {
+                    
+                    Integer totalContact = (Integer) aggResult.get('noContact');
+                    Id conAccId          = (Id) aggResult.get('AccountID');
+
+                    Account updateAcc               = new Account();
+                    updateAcc.Id                    = conAccId;
+                    updateAcc.Number_of_Contacts__c = totalContact;
+
+                    listAccToUpdate.add(updateAcc);
+                    setAccIds.remove(conAccId); //* removing the account ID
+                }
+            } 
+        }
+        //* Update the accounts with 0 contcats
+
+        if (!setAccIds.isEmpty()) {
+            //* Process the account ID where there are no contacts
+            for (Id accId : setAccIds) {
+                Account updateAcc         = new Account();
+                updateAcc.Id                    = accId;
+                updateAcc.Number_of_Contacts__c = 0;
+
+                listAccToUpdate.add(updateAcc);
+            }
+        }
+
+        //* Bulkfy the code to process the account record update
+
+        if (!listAccToUpdate.isEmpty()) {
+            try {
+       
+                update as user listAccToUpdate;
+            } catch (System.DmlException dmlExp) {
+                
+                List<System_Event__c> listErrros = new List<System_Event__c>(); //* add the error to the system event object
+    
+                for (Integer i = 0; i < dmlExp.getNumDml(); i++) {
+    
+                    System_Event__c errorRecord = Logger.loggError(dmlExp.getStackTraceString(), dmlExp.getMessage(), dmlExp.getDmlId(i));
+                    listErrros.add(errorRecord);
+                }
+                
+                insert as user listErrros;
+            }
+        } 
+    }
 }

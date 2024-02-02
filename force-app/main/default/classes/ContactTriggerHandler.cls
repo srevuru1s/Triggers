@@ -13,7 +13,38 @@ public with sharing class ContactTriggerHandler {
         ContactTriggerHelper.upfateFax(newContactList); //* Update the contact FAX field with phone number
     }
     //* After Insert
-    public static void handleAfterInsert(List<Contact> newContactList, Map<id,Contact> newContactMap) {
+    public static void handleAfterInsert(List<Contact> newContactList, Map<Id,Contact> newContactMap) {
         ContactTriggerHelper.updateAccountDetialsOnOpportunity(newContactList, newContactMap);
+
+        //* Update the account nuber of contacts field
+        Set<Id> setAccId = new Set<Id>(); //* Collect the account Ids
+        if(!newContactMap.isEmpty()) {
+            for (Contact con : newContactMap.values()) {
+                //* Condition to check 
+                if (con.AccountId != null) {
+                    setAccId.add(con.AccountId);
+                }
+            }
+            ContactTriggerHelper.updateAccountContacts(setAccId); //* call the helper class
+        }
+        
+    }
+    //* After Update
+    public static void handleAfterUpdate(Map<Id,Contact> newContactMap, Map<Id,Contact> oldContactMap) {
+        
+        //*Update the number of contacts on Account
+        Set<Id> setAccId = new Set<Id>();//* Collect the account Id's
+        if (!newContactMap.values().isEmpty()) {
+            for (Contact con : newContactMap.values()) {
+                //* Condition to check
+                if (con.AccountId != oldContactMap.get(con.Id).AccountId) {
+
+                    setAccId.add(con.AccountId);
+                    setAccId.add(oldContactMap.get(con.Id).AccountId);
+                }
+            }
+            ContactTriggerHelper.updateAccountContacts(setAccId); //* Call the helper class
+        }
+        
     }
 }
