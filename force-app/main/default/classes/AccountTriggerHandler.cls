@@ -91,7 +91,7 @@ public with sharing class AccountTriggerHandler {
                 //* Loop through the account 
                 for (Account newAcc : listNewAccount) {
                 
-                        //* loop through the child contact records
+                        //* loop through the child contact record
                         for (Contact updateCon : newAcc.Contacts) {
                             
                             updateCon.Active__c = newAcc.Active__c;
