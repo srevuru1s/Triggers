@@ -121,9 +121,9 @@ public with sharing class AccountTriggerHelper {
                     
                 }     
             }
+           
         }
     }
-
     //!Create number of locations
     public static void accountLocations(List<Account> newAccountList) {
         List<Custom_Locations__c> listAccLocation = new List<Custom_Locations__c>(); //* Collect the locations

@@ -2,41 +2,55 @@ public with sharing class ContactTriggerHelper {
     
     //! Prevent creating duplicate contact eith same Name and Email
     public static void duplicateContact(List<Contact> newContactList) {
-
-        Map<String,Contact> newMapContact = new Map<String,Contact>();
+        
+        List<String> contactEmail = new List<String>();//* collect contact email
+        List<String> contactFirstName = new List<String>(); //* Collect contact firstname 
+        List<String> contactLastName  = new List<String>(); //* Collect contact last name
 
         if (!newContactList.isEmpty()) {
             for (Contact con : newContactList) {
 
                 if (con.Email != null && con.FirstName != null && con.LastName != null) {
-                    newMapContact.put(con.Email, con);
+                    
+                    contactEmail.add(con.Email);
+                    contactFirstName.add(con.FirstName);
+                    contactLastName.add(con.LastName);
                 }
             }
         }
+
         //* Query the records
-        if (!newMapContact.isEmpty()) {
-
-            Map<String,Contact> mapExistingCon = new Map<String,Contact>();
-
-            for (Contact oldContact : [SELECT FirstName, LastName, Email FROM Contact WHERE Email IN: newMapContact.keySet()]) {
-                
-                mapExistingCon.put(oldContact.Email, oldContact); 
-
-                System.debug('map Detials :' + mapExistingCon);
-            } 
-            //* lopp through the contact records 
-                for (String oldCon : mapExistingCon.keySet()) {
-
-                    if (newMapContact.containsKey(oldCon) && (newMapContact.get(oldCon).FirstName == mapExistingCon.get(oldCon).FirstName) && (newMapContact.get(oldCon).LastName == mapExistingCon.get(oldCon).LastName)) {
-                        
-                        newMapContact.get(oldCon).FirstName.addError('Duplicate contact with same first name');
-                        newMapContact.get(oldCon).LastName.addError('Duplicate contact with same Last name');
-                        newMapContact.get(oldCon).Email.addError('Duplicate contact with same Email');
-                    } 
-
-            }
+        if (!contactEmail.isEmpty() && !contactFirstName.isEmpty() && !contactLastName.isEmpty()) {
             
-        }
+            
+            List<String> existingFirstNameList = new List<String>();
+            List<String> existingLastNameList  = new List<String>();
+            List<String> existingEmailList     = new List<String>();
+    
+            //* Loop through the queried contact list
+            for (Contact con : [SELECT Id, FirstName, LastName, Email From Contact WHERE FirstName IN :contactFirstName AND 
+                                LastName IN: contactLastName AND Email IN: contactEmail WITH USER_MODE LIMIT 50000]) {
+                
+                existingFirstNameList.add(con.FirstName); //* Add to the list 
+                existingLastNameList.add(con.LastName);
+                existingEmailList.add(con.Email);
+                
+            }
+                                                                    
+            //* loop through the new contacts
+            for (Contact newCon : newContactList) {
+                //* Check for the condition
+                if(existingFirstNameList.contains(newCon.FirstName) && existingLastNameList.contains(newCon.LastName) && existingEmailList.contains(newCon.Email)) {
+
+                    newCon.addError('You can\'t save the duplicate contact with same name and email'); 
+                    
+                } else {
+                    existingFirstNameList.add(newCon.FirstName); //* Add to the list 
+                    existingLastNameList.add(newCon.LastName);
+                    existingEmailList.add(newCon.Email);
+                    }
+                }
+            }
     }
     //! Check account active__c field before creating a new contact
     public static void stopCreatingNewContactAcountInactive(List<Contact> newContactList) {
