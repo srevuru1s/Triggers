@@ -22,6 +22,30 @@ public with sharing class AccountTriggerHandler {
     public static void handleBeforeUpdate(List<Account> newAccountList) {
         AccountTriggerHelper.helperBeforeInsertUpdate(newAccountList);//!Set the account Billing Address to shipping address
     }
+    //* Before Delete
+    public static void handleBeforeDelete(Map<Id,Account> mapOldAccount) {
+
+        if (!mapOldAccount.isEmpty()) {
+
+            Map<Id,Integer> mapOpps = new Map<Id,Integer>();//* collect the AccountId and No of Opps
+            for (AggregateResult aggResult : [SELECT COUNT(Id) oppCount, AccountId FROM Opportunity WHERE AccountId IN : mapOldAccount.keySet() WITH USER_MODE GROUP BY AccountId LIMIT 50000]) {
+                
+                Id oppAccId    = (Id) aggResult.get('AccountId');
+                Integer noOpps = (Integer) aggResult.get('oppCount');
+
+                mapOpps.put(oppAccId, noOpps);
+            }
+            //* Loop through the Accounts
+            for (Account delAcc : mapOldAccount.values()) {
+                
+                if (mapOpps.containsKey(delAcc.Id) && mapOpps.get(delAcc.Id) > 0) {
+                    
+                    delAcc.addError('This account can\'t be deleted with opportunities');
+                }
+            }
+        }
+        
+    }
     //* After Insert
     public static void handleAfterInsert(List<Account> newAccountList) {
         AccountTriggerHelper.accountLocations(newAccountList); //! Create N locations
@@ -133,6 +157,7 @@ public with sharing class AccountTriggerHandler {
                         System_Event__c errorRecord = Logger.loggError(dmlExp.getStackTraceString(), dmlExp.getMessage(), dmlExp.getDmlId(i));
                         listErrros.add(errorRecord);
                     }
+                    insert as user listErrros;
                 }    
             }
         }

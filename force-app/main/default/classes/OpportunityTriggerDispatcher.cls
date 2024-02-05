@@ -8,7 +8,7 @@ public with sharing class OpportunityTriggerDispatcher {
                 OpportunityTriggerHandler.handleAfterInsert(Trigger.new);
             }
             WHEN BEFORE_UPDATE {
-                OpportunityTriggerHandler.handleBeforeUpdate(Trigger.new);
+                OpportunityTriggerHandler.handleBeforeUpdate(Trigger.new, (Map<Id,Opportunity>)Trigger.OldMap);
             }
             WHEN AFTER_UPDATE {
                 

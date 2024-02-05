@@ -47,4 +47,31 @@ public with sharing class ContactTriggerHandler {
         }
         
     }
+    //* After Delete
+    public static void hanleAfterDelete (Map<Id,Contact> oldContact) {
+        
+        Set<Id> setDeletedContact = new Set<Id>(); //* Collect the deleted contacts
+        
+        if (!oldContact.isEmpty()) {
+            for (Contact delCon : oldContact.values()) {
+                 if (delCon.AccountId != null) {
+                    setDeletedContact.add(delCon.AccountId);
+                 }       
+            }
+            ContactTriggerHelper.updateAccountContacts(setDeletedContact); //* Call the helper class
+        }
+    }
+    //* After Undelete
+    public static void handleAfterUndelete(Map<Id,Contact> newMapContacts) {
+        
+        Set<Id> setUndelContact = new Set<Id>();//* Collect the Account ID's
+        if (!newMapContacts.isEmpty()) {
+            for (Contact undelContact : newMapContacts.values()) {
+                if (undelContact.AccountId != null) {
+                    setUndelContact.add(undelContact.AccountId);
+                }
+            }
+            ContactTriggerHelper.updateAccountContacts(setUndelContact); //* Call the helper class
+        }
+    } 
 }

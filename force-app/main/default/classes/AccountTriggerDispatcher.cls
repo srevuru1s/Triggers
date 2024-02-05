@@ -15,7 +15,7 @@ public with sharing class AccountTriggerDispatcher {
                 AccountTriggerHandler.handleAfterUpdate(Trigger.new, (Map<Id,Account>) Trigger.oldMap);
             }
             WHEN BEFORE_DELETE {
-                
+                AccountTriggerHandler.handleBeforeDelete((Map<Id,Account>) Trigger.oldMap);
             }
             WHEN AFTER_DELETE {
                 

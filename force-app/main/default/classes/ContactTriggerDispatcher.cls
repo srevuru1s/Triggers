@@ -17,11 +17,12 @@ public with sharing class ContactTriggerDispatcher {
                 
             }
             WHEN AFTER_DELETE {
-                
+                ContactTriggerHandler.hanleAfterDelete((Map<Id,Contact>) Trigger.oldMap);
             }
             WHEN AFTER_UNDELETE {
-                
+                ContactTriggerHandler.handleAfterUndelete((Map<Id,Contact>) Trigger.newMap);
             }
+            
         }
     }
 }
