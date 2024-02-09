@@ -14,6 +14,7 @@ public with sharing class OpportunityTriggerHandler {
     public static void handleAfterInsert(List<Opportunity> newOppList) {
         OpportunityTriggerHelper.opportunityTaskCreation(newOppList);
         OpportunityTriggerHelper.updateOppAmount(newOppList);
+        OpportunityTriggerHelper.addSalesRepName(newOppList);
         
         //* Update amount on Account 
         Map<Id,Opportunity> mapOppAccountId = new Map<Id,Opportunity>(); //* Collect the account Ids
@@ -25,8 +26,19 @@ public with sharing class OpportunityTriggerHandler {
             }
             OpportunityTriggerHelper.updateOppAmountOnAccount(mapOppAccountId);
         }
-        
-        
+    }
+    //* After Update
+    public static void handleAfterUpdate(List<Opportunity> newOppList, Map<Id,Opportunity> oldMapOpp) {
+        Map<Id,Opportunity> mapOppToUpdate = new Map<Id,Opportunity>();//*Collect the map to update
+        if (!newOppList.isEmpty()) {
+            for (Opportunity newOpp : newOppList) {
+                if(newOpp.Sales_Representative__c == null || newOpp.Sales_Representative__c != oldMapOpp.get(newOpp.Id).Sales_Representative__c) {
+
+                    mapOppToUpdate.put(newOpp.Id, newOpp);
+                }
+            }
+        }
+        OpportunityTriggerHelper.addSalesRepName(mapOppToUpdate.values());
     }
 
 }

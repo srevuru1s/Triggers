@@ -11,7 +11,7 @@ public with sharing class OpportunityTriggerDispatcher {
                 OpportunityTriggerHandler.handleBeforeUpdate(Trigger.new, (Map<Id,Opportunity>)Trigger.OldMap);
             }
             WHEN AFTER_UPDATE {
-                
+                OpportunityTriggerHandler.handleAfterUpdate(Trigger.new, (Map<Id,Opportunity>)Trigger.OldMap);
             }
             WHEN BEFORE_DELETE {
                 

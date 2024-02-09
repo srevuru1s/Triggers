@@ -12,6 +12,7 @@ public with sharing class OpportunityTriggerHelper {
                     
                     Decimal discount             = (newOpp.Discount__c * newOpp.Amount)/100;
                     newOpp.Discounted_Price__c   = (newOpp.Amount-discount);
+                  
                 }
             }
         }
@@ -63,6 +64,7 @@ public with sharing class OpportunityTriggerHelper {
             for (Opportunity opp : newOppList) {
                 if (opp.AccountId != Null) {
                     mapOppAccId.put(opp.AccountId, opp);
+                    
                 }
             }
         }
@@ -203,6 +205,47 @@ public with sharing class OpportunityTriggerHelper {
                     newOpp.Description = listUserDetails.get(newOpp.OwnerId).Name + listUserDetails.get(newOpp.OwnerId).Email;
 
             }
+        }
+    }
+    //!Add sales Rep field on the Opp
+    public static void addSalesRepName(List<Opportunity> newOppList) {
+        
+        Map<Id,Opportunity> mapOpp = new Map<Id,Opportunity>();//* collect the opps that need to be updated
+        
+        if(!newOppList.isEmpty()) {
+            for (Opportunity opp : newOppList) {
+                if(opp.Sales_Representative__c == null) {
+                    mapOpp.put(opp.Id, opp);
+                }
+            }
+        }
+        //* Loop Through the Map
+        List<Opportunity> listOppsToUpdate = new List<Opportunity>(); //* collect the opps
+        if (!mapOpp.isEmpty()) {
+            for (Opportunity opp : mapOpp.values()) {
+                
+                Opportunity newOpp = new Opportunity();
+                newOpp.Sales_Representative__c = opp.OwnerId;
+                newOpp.Id                      = opp.Id;
+                listOppsToUpdate.add(newOpp);
+            }
+        }
+        if (!listOppsToUpdate.isEmpty()) {
+            try {
+                update as user listOppsToUpdate;
+                
+            } catch (System.DmlException dmlExp) {
+                
+                List<System_Event__c> listErrros = new List<System_Event__c>(); //* add the error to the system event object
+
+                for (Integer i = 0; i < dmlExp.getNumDml(); i++) {
+
+                    System_Event__c errorRecord = Logger.loggError(dmlExp.getStackTraceString(), dmlExp.getMessage(), dmlExp.getDMLId(i));
+                    listErrros.add(errorRecord);
+                }
+                
+                insert as user listErrros;
+            } 
         }
     }
 }

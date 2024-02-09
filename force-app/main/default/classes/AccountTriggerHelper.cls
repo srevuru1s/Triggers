@@ -165,5 +165,15 @@ public with sharing class AccountTriggerHelper {
         
         
     }
+    // //!Update the account sales rep field
+    // public static void addSalesRepFiledAccount(List<Account> newAccountList) {
+
+    //     if (!newAccountList.isEmpty()) {
+    //         //* Loop through the records
+    //         for (Account acc : newAccountList) {
+    //             if(acc.Sale)
+    //         }
+    //     }
+    // }
 
 }

@@ -49,6 +49,7 @@ public with sharing class AccountTriggerHandler {
     //* After Insert
     public static void handleAfterInsert(List<Account> newAccountList) {
         AccountTriggerHelper.accountLocations(newAccountList); //! Create N locations
+        
         //! Create a task record when an new account gets created
         List<Task> listAccountTask = new List<Task>(); //* To insert the task records
         if (!newAccountList.isEmpty()) {
