@@ -29,15 +29,15 @@ public with sharing class OpportunityTriggerHandler {
     }
     //* After Update
     public static void handleAfterUpdate(List<Opportunity> newOppList, Map<Id,Opportunity> oldMapOpp) {
+        if (newOppList.isEmpty()) return;
+        
         Map<Id,Opportunity> mapOppToUpdate = new Map<Id,Opportunity>();//*Collect the map to update
-        if (!newOppList.isEmpty()) {
+        
             for (Opportunity newOpp : newOppList) {
                 if(newOpp.Sales_Representative__c == null || newOpp.Sales_Representative__c != oldMapOpp.get(newOpp.Id).Sales_Representative__c) {
-
                     mapOppToUpdate.put(newOpp.Id, newOpp);
                 }
             }
-        }
         OpportunityTriggerHelper.addSalesRepName(mapOppToUpdate.values());
     }
 
