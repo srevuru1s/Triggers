@@ -1,3 +1,10 @@
+/**
+ * @description       : 
+ * @author            : ChangeMeIn@UserSettingsUnder.SFDoc
+ * @group             : 
+ * @last modified on  : 02-16-2024
+ * @last modified by  : ChangeMeIn@UserSettingsUnder.SFDoc
+**/
 public with sharing class OpportunityTriggerHelper {
     
     //! if the Discount & Amount field is not blank then calculate the discount
@@ -106,19 +113,48 @@ public with sharing class OpportunityTriggerHelper {
     //! Update the Account with Opp Amount 
     public static void updateOppAmountOnAccount(Map<Id,Opportunity> mapNewOpp) {
         if (mapNewOpp.isEmpty()) return;
-        List<Account> listOpenOppAmountAccount = new List<Account>();//* Collect the accounts to update open opp Amount
-        List<Account> listClosedOppAmountAccount = new List<Account>();//* Collect the accounts to update closed opp Amount
-        
-            //* Query the Opportunity Amounts closed and Open
-            List<AggregateResult> closedOppAggresult = [SELECT SUM(Amount) totalClosedAmount, AccountId FROM Opportunity WHERE AccountId IN: mapNewOpp.keySet() AND 
-                                                        StageName NOT IN ('Closed Lost', 'Closed Won') WITH USER_MODE GROUP BY AccountId LIMIT 50000];
-            
-            List<AggregateResult> openOppdAggresult  = [SELECT SUM(Amount) totalOpenAmount, AccountId FROM Opportunity WHERE AccountId IN: mapNewOpp.keySet() AND 
-                                                        StageName IN ('Closed Lost', 'Closed Won') WITH USER_MODE GROUP BY AccountId LIMIT 50000];
 
-            //* First Loop closed Amount
-            if (!closedOppAggresult.isEmpty()) {
-                //* Loop through the records
+        Set<Id> openOppAccId    = new Set<Id>(); //* collect the open opps account Id
+        Set<Id> closedOppAccId  = new Set<Id>(); //* collect the closed opps account Id
+            //* Loop through the opps to run the query 
+            for (Opportunity opp : mapNewOpp.values()) {
+
+                if(opp.StageName != 'Closed Lost' && opp.StageName != 'Closed Won') {
+                    openOppAccId.add(opp.AccountId);   
+                } else {    
+                    closedOppAccId.add(opp.AccountId);
+                }
+                
+            }
+
+            //* Query the open Opportunity Amounts 
+            List<Account> listOpenOppAmountAccount = new List<Account>();//* Collect the accounts to update open opp Amount
+            
+            if (!openOppAccId.isEmpty()) {
+            
+                List<AggregateResult> openOppdAggresult  = [SELECT SUM(Amount) totalOpenAmount, AccountId FROM Opportunity WHERE AccountId IN: openOppAccId 
+                                                            WITH USER_MODE GROUP BY AccountId LIMIT 50000]; 
+                //* Loop through the agg results
+                for (AggregateResult aggResult : openOppdAggresult) {
+                    
+                    Decimal amount = (Decimal) aggResult.get('totalOpenAmount');
+                    Id accId       = (Id) aggResult.get('AccountId');
+
+                    Account updateAcc                      = new Account();
+                    updateAcc.Id                           = accId;
+                    updateAcc.Sum_of_Open_Opportunity__c   = amount;
+                    
+                    listOpenOppAmountAccount.add(updateAcc);
+                }
+            }
+            //* Query the closed Opportunity Amount
+            List<Account> listClosedOppAmountAccount = new List<Account>();//* Collect the accounts to update closed opp Amount
+            
+            if(!closedOppAccId.isEmpty()) {
+                List<AggregateResult> closedOppAggresult = [SELECT SUM(Amount) totalClosedAmount, AccountId FROM Opportunity WHERE AccountId IN: closedOppAccId
+                                                             WITH USER_MODE GROUP BY AccountId LIMIT 50000];
+
+                //* Loop through the aggresults
                 for (AggregateResult aggResult : closedOppAggresult) {
                     
                     Decimal amount = (Decimal) aggResult.get('totalClosedAmount');
@@ -131,21 +167,8 @@ public with sharing class OpportunityTriggerHelper {
                     listClosedOppAmountAccount.add(updateAcc);
                 }
             }
-            //* Second Loop for open Opp's Amount     
-            if (!openOppdAggresult.isEmpty()) {
-                //* Loop through the records
-                for (AggregateResult aggResult : openOppdAggresult) {
-                    
-                    Decimal amount = (Decimal) aggResult.get('totalOpenAmount');
-                    Id accId       = (Id) aggResult.get('AccountId');
-
-                    Account updateAcc                      = new Account();
-                    updateAcc.Id                           = accId;
-                    updateAcc.Sum_of_Open_Opportunity__c   = amount;
-                    
-                    listOpenOppAmountAccount.add(updateAcc);
-                }
-            }                                      
+            
+            //* Bulkify the code to insert/update the account reords                              
             
             if ((!listOpenOppAmountAccount.isEmpty()) || (!listClosedOppAmountAccount.isEmpty())) {
                 try {

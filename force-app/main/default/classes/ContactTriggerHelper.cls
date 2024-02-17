@@ -1,3 +1,10 @@
+/**
+ * @description       : 
+ * @author            : ChangeMeIn@UserSettingsUnder.SFDoc
+ * @group             : 
+ * @last modified on  : 02-15-2024
+ * @last modified by  : ChangeMeIn@UserSettingsUnder.SFDoc
+**/
 public with sharing class ContactTriggerHelper {
     
     //! Prevent creating duplicate contact eith same Name and Email
@@ -250,16 +257,9 @@ public with sharing class ContactTriggerHelper {
        
                 update as user listAccToUpdate;
             } catch (System.DmlException dmlExp) {
-                
-                List<System_Event__c> listErrros = new List<System_Event__c>(); //* add the error to the system event object
-    
-                for (Integer i = 0; i < dmlExp.getNumDml(); i++) {
-    
-                    System_Event__c errorRecord = Logger.loggError(dmlExp.getStackTraceString(), dmlExp.getMessage(), dmlExp.getDmlId(i));
-                    listErrros.add(errorRecord);
-                }
-                
-                insert as user listErrros;
+                Logger.triggererror(dmlExp);
+            } catch (System.Exception allExp) {
+                Logger.triggerAllErrors(allExp);
             }
         } 
     }
