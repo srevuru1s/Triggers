@@ -6,6 +6,10 @@
 .localdevserver
 .sfdx
 .sf
-.vscode
-
 coverage/
+.vscode
+docs/
+force-app/main/default/prompts/*.prompt-meta.xml
+# Exclude project config (edited by CI workflow)
+sfdx-project.json
+dependencies.json
