@@ -28,3 +28,11 @@ for (Account acc : [SELECT Id, Name, (SELECT Id, FirstName FROM Contacts ORDER B
 
 System.debug('Parentmap Details :' + accountContactOpportunityMap);
 
+CaseEnumSwitch.updateCaseStatus('500am000000HhsjAAC', CaseEnum.Status.ACTIVE);
+
+List<String> myName = new List<String>();
+myName.add('Sagar');
+myName.add('Ava');
+String myDaughter = (String) myName.get(0);
+
+System.debug('Ava Revuru 🤩:'+ myDaughter);
