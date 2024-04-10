@@ -1,3 +1,10 @@
+/**
+ * @description       : 
+ * @author            : ChangeMeIn@UserSettingsUnder.SFDoc
+ * @group             : 
+ * @last modified on  : 04-09-2024
+ * @last modified by  : ChangeMeIn@UserSettingsUnder.SFDoc
+**/
 public with sharing class AccountTriggerHandler {
 
     //* Before Insert
@@ -12,6 +19,7 @@ public with sharing class AccountTriggerHandler {
                 acc.Industry = 'Education';
                 if (acc.Description == Null) {
                     acc.Description = 'Account Description is blank';
+                    
                 }
 
             }
@@ -163,4 +171,6 @@ public with sharing class AccountTriggerHandler {
             }
         }
     }
+
+    
 }
