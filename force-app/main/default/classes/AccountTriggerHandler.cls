@@ -2,7 +2,7 @@
  * @description       : 
  * @author            : ChangeMeIn@UserSettingsUnder.SFDoc
  * @group             : 
- * @last modified on  : 04-09-2024
+ * @last modified on  : 04-25-2024
  * @last modified by  : ChangeMeIn@UserSettingsUnder.SFDoc
 **/
 public with sharing class AccountTriggerHandler {
@@ -33,7 +33,7 @@ public with sharing class AccountTriggerHandler {
     //* Before Delete
     public static void handleBeforeDelete(Map<Id,Account> mapOldAccount) {
 
-        if (!mapOldAccount.isEmpty()) {
+        if (mapOldAccount?.size() > 0) {
 
             Map<Id,Integer> mapOpps = new Map<Id,Integer>();//* collect the AccountId and No of Opps
             for (AggregateResult aggResult : [SELECT COUNT(Id) oppCount, AccountId FROM Opportunity WHERE AccountId IN : mapOldAccount.keySet() WITH USER_MODE GROUP BY AccountId LIMIT 50000]) {
