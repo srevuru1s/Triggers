@@ -1,9 +1,16 @@
+/**
+ * @description       : 
+ * @author            : ChangeMeIn@UserSettingsUnder.SFDoc
+ * @group             : 
+ * @last modified on  : 06-17-2024
+ * @last modified by  : ChangeMeIn@UserSettingsUnder.SFDoc
+**/
 public with sharing class AccountTriggerHelper {
 
     //!Set the account Billing Address to shipping address && Update the shipping address with billing if they are blank
     public static void helperBeforeInsertUpdate(List<Account> newAccountList) {
 
-        if (!newAccountList.isEmpty()) {
+        if (!newAccountList?.isEmpty()) {
             //* loop through the accounts
 
             for (Account acc : newAccountList) {

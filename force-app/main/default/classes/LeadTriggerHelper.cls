@@ -2,57 +2,55 @@
  * @description       : 
  * @author            : ChangeMeIn@UserSettingsUnder.SFDoc
  * @group             : 
- * @last modified on  : 03-21-2024
+ * @last modified on  : 07-05-2024
  * @last modified by  : ChangeMeIn@UserSettingsUnder.SFDoc
 **/
 public with sharing class LeadTriggerHelper {
 
     //* Duplicate check 
-
     public static void checkDuplicateLead(List<Lead> newListLead) {
         
-        if (newListLead?.isEmpty())
-        return;
-
-        
-        List<String> listEmail = new List<String>(); //* lead names
-        List<String> listCompany = new List<String>(); //* lead email
+        Map<String,String> newMapLeads = new Map<String, String>(); //* Collect the new lead records
 
         //* Loop through the records
         for (Lead newLead : newListLead) {
-            if (newLead.Email != null && newLead.Company != null) {
-                listEmail.add(newLead.Email);
-                listCompany.add(newLead.Company);
-                
+            if (!String.isEmpty(newLead.Email) && !String.isEmpty(newLead.Company)) {       
+                //* adding the new leads to Map
+                newMapLeads.put(newLead.Email, newLead.Company);
             }
+            Integer mapIteams = newMapLeads.size();
         }
-        //*Query the existing records
-        List<Lead> existingLeadRecords = [
-            SELECT Id, Email, Company
-            FROM Lead
-            WHERE Email IN :listEmail AND Company IN :listCompany
-            WITH USER_MODE
-            LIMIT 50000
-        ];
-        List<String> listOldLeadCompany = new List<String>(); //* Old lead company
-        List<String> listOldLeadEmail = new List<String>(); //* old lead email
 
-        if (!existingLeadRecords.isEmpty()) {
-            //*Loop through old records
-            for (Lead oldLead : existingLeadRecords) {
-            listOldLeadCompany.add(oldLead.Company);
-            listOldLeadEmail.add(oldLead.Email);
+        //*Query the existing records
+        Map<String,Lead> existingMapLeadRecords = new Map<String, Lead>(); //* Lead map records
+
+        for (Lead existingLead : [SELECT Id, Email, Company
+                                    FROM Lead
+                                    WHERE Email IN :newMapLeads.keySet() AND Company IN :newMapLeads.values() AND Id NOT IN : newListLead
+                                    WITH USER_MODE
+                                    LIMIT 50000]) {          
+                existingMapLeadRecords.put(existingLead.Email, existingLead); //* add to the map
             }
-        }
-        //* Loop through the new records
-        for (Lead newLead : newListLead) {
-            //*Duplicate lead check
-            if (listOldLeadEmail.contains(newLead.Email) && listOldLeadCompany.contains(newLead.Company)) {
-            newLead.Email.addError('Duplicate lead with same email');
-            newLead.Company.addError('Duplicate lead with same company');
+        //? Calling the duplicate check method
+        duplicateLeadCheck(newListLead, existingMapLeadRecords);
+        
+
+    }
+
+    //* Dupplicate check conditions
+    public static void duplicateLeadCheck(List<Lead> listLeads, Map<String, Lead> existingMapLeads) {
+
+        for (Lead newLead : listLeads) {
+        
+            if (existingMapLeads.containsKey(newLead.Email) && existingMapLeads.get(newLead.Email).Company == newLead.Company) {
+
+                newLead.addError('Duplicate Lead Record');
+                newLead.Email.addError('Ducplicate Email Id');
+                newLead.Company.addError('Ducplicate Company Name');
             } else {
-            existingLeadRecords.add(newLead);
+                existingMapLeads.put(newLead.Email, newLead);
             }
-        }
+        }  
+
     }
 }

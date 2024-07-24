@@ -2,7 +2,7 @@
  * @description       : 
  * @author            : ChangeMeIn@UserSettingsUnder.SFDoc
  * @group             : 
- * @last modified on  : 02-15-2024
+ * @last modified on  : 06-28-2024
  * @last modified by  : ChangeMeIn@UserSettingsUnder.SFDoc
 **/
 public with sharing class ContactTriggerHelper {
@@ -10,9 +10,9 @@ public with sharing class ContactTriggerHelper {
     //! Prevent creating duplicate contact eith same Name and Email
     public static void duplicateContact(List<Contact> newContactList) {
         
-        List<String> contactEmail = new List<String>();//* collect contact email
-        List<String> contactFirstName = new List<String>(); //* Collect contact firstname 
-        List<String> contactLastName  = new List<String>(); //* Collect contact last name
+        Set<String> contactEmail = new Set<String>();//* collect contact email
+        Set<String> contactFirstName = new Set<String>(); //* Collect contact firstname 
+        Set<String> contactLastName  = new Set<String>(); //* Collect contact last name
 
         if (!newContactList.isEmpty()) {
             for (Contact con : newContactList) {
@@ -27,12 +27,12 @@ public with sharing class ContactTriggerHelper {
         }
 
         //* Query the records
-        if (!contactEmail.isEmpty() && !contactFirstName.isEmpty() && !contactLastName.isEmpty()) {
+        if (!contactEmail?.isEmpty() && !contactFirstName?.isEmpty() && !contactLastName?.isEmpty()) {
             
             
-            List<String> existingFirstNameList = new List<String>();
-            List<String> existingLastNameList  = new List<String>();
-            List<String> existingEmailList     = new List<String>();
+            Set<String> existingFirstNameList = new Set<String>();
+            Set<String> existingLastNameList  = new Set<String>();
+            Set<String> existingEmailList     = new Set<String>();
     
             //* Loop through the queried contact list
             for (Contact con : [SELECT Id, FirstName, LastName, Email From Contact WHERE FirstName IN :contactFirstName AND 
@@ -74,14 +74,18 @@ public with sharing class ContactTriggerHelper {
             }
         }
         //* Query the account field
-        List<Account> queyAccount = [SELECT Id, Active__c FROM Account WHERE Id IN:mapContact.keySet() WITH USER_MODE];
-        if (!queyAccount.isEmpty()) {
+        List<Account> queyAccount = [SELECT Id, Active__c, ShippingStreet, BillingStreet FROM Account WHERE Id IN:mapContact.keySet() WITH USER_MODE];
+        if (!queyAccount?.isEmpty()) {
             //* Loop through accounts 
             for (Account acc : queyAccount) {
                 //* Condition to check
                 if (acc.Active__c == 'No') {
 
                     mapContact.get(acc.Id).addError('You can\'t create Contact on inactive account');
+                } else {
+
+                    mapContact.get(acc.Id).MailingStreet = acc.ShippingStreet;
+                    mapContact.get(acc.Id).OtherStreet   = acc.BillingStreet;
                 }
             }
 
@@ -89,7 +93,8 @@ public with sharing class ContactTriggerHelper {
     }
     //!Update the contact FAX field with phone number
     public static void upfateFax(List<Contact> newContactList) {
-        
+
+
         if (!newContactList.isEmpty()) {
             //* loop through the list
             for (Contact newCon : newContactList) {

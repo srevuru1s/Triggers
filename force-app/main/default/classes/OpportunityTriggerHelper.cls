@@ -2,7 +2,7 @@
  * @description       :
  * @author            : ChangeMeIn@UserSettingsUnder.SFDoc
  * @group             :
- * @last modified on  : 02-26-2024
+ * @last modified on  : 07-08-2024
  * @last modified by  : ChangeMeIn@UserSettingsUnder.SFDoc
  **/
 public with sharing class OpportunityTriggerHelper {
@@ -119,49 +119,48 @@ public with sharing class OpportunityTriggerHelper {
     if (mapNewOpp.isEmpty())
       return;
 
-    Set<Id> openOppAccId = new Set<Id>(); //* collect the open opps account Id
-    Set<Id> closedOppAccId = new Set<Id>(); //* collect the closed opps account Id
+    Map<Id,Account> mapOpenOppAccount   = new Map<Id,Account>();
+    Map<Id,Account> mapClosedOppAccount = new Map<Id,Account>();
+
     //* Loop through the opps to run the query
     for (Opportunity opp : mapNewOpp.values()) {
       if (opp.StageName != 'Closed Lost' && opp.StageName != 'Closed Won') {
-        openOppAccId.add(opp.AccountId);
+        mapOpenOppAccount.put(opp.AccountId, new Account(Id = opp.AccountId, Sum_of_Open_Opportunity__c = 0));
       } else {
-        closedOppAccId.add(opp.AccountId);
+        mapClosedOppAccount.put(opp.AccountId, new Account(Id = opp.AccountId, Sum_of_Closed_Opportunity__c = 0));
       }
     }
 
     //* Query the open Opportunity Amounts
-    List<Account> listOpenOppAmountAccount = new List<Account>(); //* Collect the accounts to update open opp Amount
-
-    if (!openOppAccId.isEmpty()) {
-      List<AggregateResult> openOppdAggresult = [
-        SELECT SUM(Amount) totalOpenAmount, AccountId
-        FROM Opportunity
-        WHERE AccountId IN :openOppAccId
-        WITH USER_MODE
-        GROUP BY AccountId
-        LIMIT 50000
-      ];
+    
+      if (!mapOpenOppAccount .isEmpty()) {
+        List<AggregateResult> openOppdAggresult = [
+          SELECT SUM(Amount) totalOpenAmount, AccountId
+          FROM Opportunity
+          WHERE AccountId IN :mapOpenOppAccount.keySet()
+          AND StageName != 'Closed Won'
+          AND StageName != 'Closed Lost'
+          WITH USER_MODE
+          GROUP BY AccountId
+          LIMIT 50000
+        ];
       //* Loop through the agg results
       for (AggregateResult aggResult : openOppdAggresult) {
         Decimal amount = (Decimal) aggResult.get('totalOpenAmount');
         Id accId = (Id) aggResult.get('AccountId');
 
-        Account updateAcc = new Account();
-        updateAcc.Id = accId;
-        updateAcc.Sum_of_Open_Opportunity__c = amount;
-
-        listOpenOppAmountAccount.add(updateAcc);
+        mapOpenOppAccount.put(accId, new Account(Id = accId, Sum_of_Open_Opportunity__c = amount));
       }
     }
     //* Query the closed Opportunity Amount
-    List<Account> listClosedOppAmountAccount = new List<Account>(); //* Collect the accounts to update closed opp Amount
 
-    if (!closedOppAccId.isEmpty()) {
+    if (!mapClosedOppAccount.isEmpty()) {
       List<AggregateResult> closedOppAggresult = [
         SELECT SUM(Amount) totalClosedAmount, AccountId
         FROM Opportunity
-        WHERE AccountId IN :closedOppAccId
+        WHERE AccountId IN :mapClosedOppAccount.keySet()
+        AND (StageName = 'Closed Won'
+        OR StageName = 'Closed Lost')
         WITH USER_MODE
         GROUP BY AccountId
         LIMIT 50000
@@ -172,23 +171,19 @@ public with sharing class OpportunityTriggerHelper {
         Decimal amount = (Decimal) aggResult.get('totalClosedAmount');
         Id accId = (Id) aggResult.get('AccountId');
 
-        Account updateAcc = new Account();
-        updateAcc.Id = accId;
-        updateAcc.Sum_of_Closed_Opportunity__c = amount;
-
-        listClosedOppAmountAccount.add(updateAcc);
+        mapClosedOppAccount.put(accId, new Account(Id = accId, Sum_of_Closed_Opportunity__c = amount));
       }
     }
 
     //* Bulkify the code to insert/update the account reords
 
     if (
-      (!listOpenOppAmountAccount.isEmpty()) ||
-      (!listClosedOppAmountAccount.isEmpty())
+      (!mapOpenOppAccount.isEmpty()) ||
+      (!mapClosedOppAccount.isEmpty())
     ) {
       try {
-        update as user listOpenOppAmountAccount;
-        update as user listClosedOppAmountAccount;
+        update as user mapOpenOppAccount.values();
+        update as user mapClosedOppAccount.values();
       } catch (DmlException dmlExp) {
         Logger.triggererror(dmlExp);
       } catch (Exception allExp) {
@@ -198,10 +193,7 @@ public with sharing class OpportunityTriggerHelper {
   }
 
   //!Update the opp new Owner in the description
-  public static void updateOppNewOwner(
-    List<Opportunity> newOppList,
-    Map<Id, Opportunity> oldMapOpp
-  ) {
+  public static void updateOppNewOwner(List<Opportunity> newOppList,Map<Id, Opportunity> oldMapOpp) {
     if (newOppList.isEmpty())
       return;
     Map<Id, Opportunity> newOwnerOpp = new Map<Id, Opportunity>(); //* collect the opps with new Owner
@@ -267,6 +259,40 @@ public with sharing class OpportunityTriggerHelper {
       System.debug('Total DMLS:' + totalDML);
       Integer executedDMLs = Limits.getDmlStatements();
       System.debug('Executed DMLS:' + executedDMLs);
+    }
+  }
+
+  //! Update the OPP description to Account Description
+  public static void updateDescription(List<Opportunity> newOppList) {
+
+    //? Collect opp AccountID's
+    List<Id> accId = new List<Id>();
+
+    //? Check the list of new records
+    if(!newOppList?.isEmpty()) {
+      //? Check the condition of accountId field on opp record
+      for (Opportunity newOpp : newOppList) {
+
+        if(newOpp?.AccountId != null) {
+          accId.add(newOpp.AccountId);
+        }
+      }
+    }
+    //? Query the account records
+    if(!accid?.isEmpty()) {
+      
+      Map<Id,Account> mapAcc = new Map<Id,Account>([SELECT Id, Description FROM Account WHERE ID IN: accId WITH USER_MODE]);
+
+      if(!mapAcc?.isEmpty()) {
+        for(Opportunity newOpp : newOppList) {
+          
+          if(mapAcc.containsKey(newOpp.AccountId)) {
+
+            newOpp.Description = mapAcc.get(newOpp.AccountId).Description;
+          }
+        }
+      }
+
     }
   }
 }

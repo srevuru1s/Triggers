@@ -3,4 +3,4 @@
 //     query text and running the command:
 //     SFDX: Execute SOQL Query with Currently Selected Text
 
-SELECT COUNT_DISTINCT(Rating), Rating FROM Account GROUP BY Rating
+SELECT ID FROM Account WHERE Name LIKE '%oil%' LIMIT 10
