@@ -8,4 +8,8 @@
 public with sharing class MyFirstClass {
 
     public static integer myAge;
+
+    public static void method2() {
+    System.debug('This isdirectly comming from remote');
+    }
 }
