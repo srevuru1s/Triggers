@@ -21,6 +21,7 @@ public with sharing class MyFirstClass {
     }
     public static void main1() {
         System.debug('The duplicate one');
+        System.debug('I have added the details');
     }
 }
 
