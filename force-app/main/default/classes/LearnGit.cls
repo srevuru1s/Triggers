@@ -10,7 +10,7 @@ public with sharing class LearnGit {
     public static String rebase = 'remote-origin';
     
     public static Integer rebase;
-    
+
     public static void method1() {
         System.debug('Learning the UI on GIT');
     }
