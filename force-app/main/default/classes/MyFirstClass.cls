@@ -25,7 +25,7 @@ public with sharing class MyFirstClass {
     }
 
     public static void gitLearning() {
-        System.debug('getting familiar with GIT now')
+        System.debug('getting familiar with GIT now');
     }
 }
 
