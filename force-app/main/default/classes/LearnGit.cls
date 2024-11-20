@@ -6,6 +6,8 @@
  * @last modified by  : ChangeMeIn@UserSettingsUnder.SFDoc
 **/
 public with sharing class LearnGit {
+
+    public static String rebase = 'remote';
     
     public static void method1() {
         System.debug('Learning the UI on GIT');
