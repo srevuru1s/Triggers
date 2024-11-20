@@ -7,6 +7,8 @@
 **/
 public with sharing class LearnGit {
 
+    public static Integer myNumber = 20;
+    
     public static String rebase = 'remote-origin';
     
     public static Integer rebase;
