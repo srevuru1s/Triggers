@@ -12,4 +12,10 @@ public with sharing class MyFirstClass {
     public static void method2() {
     System.debug('This isdirectly comming from remote');
     }
+
+    public static void method1() {
+        System.debug('This is my local created');
+    }
 }
+
+
