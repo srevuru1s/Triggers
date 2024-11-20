@@ -16,6 +16,9 @@ public with sharing class MyFirstClass {
     public static void method1() {
         System.debug('This is my local created');
     }
+    public static void main() {
+        System.debug('The conflicts has been updated');
+    }
 }
 
 
