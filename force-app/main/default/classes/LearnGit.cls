@@ -14,6 +14,4 @@ public with sharing class LearnGit {
     public static void method2() {
         System.debug('Sync the GIT from origin to local');
     }
-
- 
 }
