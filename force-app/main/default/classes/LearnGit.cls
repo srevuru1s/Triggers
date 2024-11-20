@@ -3,11 +3,12 @@
  * @author            : ChangeMeIn@UserSettingsUnder.SFDoc
  * @group             : 
  * @last modified on  : 11-20-2024
- * @last modified by  : ChangeMeIn@UserSettingsUnder.SFDoc
+ * @last modified by  : sagar@salesforce.learning
 **/
 public with sharing class LearnGit {
 
     public static Integer myNumber = 20;
+    public static Integer phone = 11;
     
     public static String rebase = 'remote-origin';
     
