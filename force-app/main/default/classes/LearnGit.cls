@@ -10,4 +10,8 @@ public with sharing class LearnGit {
     public static void method1() {
         System.debug('Learning the UI on GIT');
     }
+
+    public static void method2() {
+        System.debug('Sync the GIT from origin to local');
+    }
 }
