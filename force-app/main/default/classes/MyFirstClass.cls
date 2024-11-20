@@ -23,6 +23,10 @@ public with sharing class MyFirstClass {
         System.debug('The duplicate one');
         System.debug('I have added the details');
     }
+
+    public static void gitLearning() {
+        System.debug('getting familiar with GIT now')
+    }
 }
 
 
