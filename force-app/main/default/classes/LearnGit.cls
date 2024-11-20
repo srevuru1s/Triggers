@@ -11,6 +11,8 @@ public with sharing class LearnGit {
     
     public static Integer rebase;
 
+    public static string myName = 'GIT';
+
     public static void method1() {
         System.debug('Learning the UI on GIT');
     }
